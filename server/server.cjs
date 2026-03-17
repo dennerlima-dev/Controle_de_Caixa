@@ -1,40 +1,45 @@
 const express = require("express")
 const cors = require("cors")
-const sqlite3 = require("sqlite3").verbose()
+const { Pool } = require("pg")
 
 const app = express()
 app.use(cors())
 app.use(express.json())
 
-const db = new sqlite3.Database("./server/database.db")
+const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: { rejectUnauthorized: false}
+})
 
-db.run(`
+// CRIAR TABELA
+pool.query(`
 CREATE TABLE IF NOT EXISTS products (
-id INTEGER PRIMARY KEY AUTOINCREMENT,
+id SERIAL PRIMARY KEY,
 name TEXT,
 price REAL,
 stock INTEGER
 )
 `)
 
-app.get("/products", (req, res) => {
-db.all("SELECT * FROM products", (err, rows) => {
-res.json(rows)
-})
+// GET
+app.get("/products", async (req, res) => {
+    const result = await pool.query("SELECT * FROM products")
+    res.json(result.rows)
 })
 
-app.post("/products", (req, res) => {
-const { name, price, stock } = req.body
+// POST
+app.post("/products", async (req, res) => {
+    const { name, price, stock } = req.body
 
-db.run(
-"INSERT INTO products (name,price,stock) VALUES (?,?,?)",
-[name, price, stock],
-function () {
-res.json({ id: this.lastID })
-}
-)
+    const result = await pool.query(
+        "INSERT INTO products (name, price, stock) VALUES ($1, $2, $3) RETURNING *",
+        [name, price, stock]
+    )
+
+    res.json(result.rows[0])
 })
+
 
 app.listen(3000, () => {
-console.log("Servidor rodando na porta 3000")
+console.log("Servidor rodando")
 })
