@@ -1,3 +1,5 @@
+/// <reference types="node" />
+
 import { defineConfig } from 'vite'
 import path from 'path'
 import tailwindcss from '@tailwindcss/vite'
