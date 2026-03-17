@@ -39,7 +39,7 @@ export function Layout() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b sticky top-0 z-40">
+      <header className="bg-[#1E3A5F] shadow-sm border-b sticky top-0 z-40">
         <div className="px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <button
@@ -48,7 +48,29 @@ export function Layout() {
             >
               {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
-            <h1 className="text-xl font-semibold text-gray-900">Joalheria Sistema de Caixa</h1>
+            <div className="flex items-center gap-2">
+
+              {/* LOGO */}
+              <img
+                src="/logo.webp"
+                alt="Logo"
+                className="w-8 h-8 rounded-full object-cover"
+              />
+            
+              {/* TEXTO */}
+              <h1 className="text-xl font-semibold flex items-center">
+              
+                          <span className="text-white">
+                  ÁGUA E SAL |
+                </span>
+              
+                <span className="ml-2" style={{ color: "lab(86.15% -4.04379 -21.0797)" }}>
+                  Controle de Caixa
+                </span>
+              
+              </h1>
+
+            </div>
           </div>
           <div className="flex items-center gap-4">
             {activeCashRegister ? (
