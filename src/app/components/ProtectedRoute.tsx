@@ -33,9 +33,10 @@ export function ProtectedRoute({ children }: any) {
           setIsAuthenticated(false)
         }
       } catch (error) {
-        // Network error, but if we have token and user, allow access
-        // This handles offline scenarios
-        setIsAuthenticated(true)
+        // Network error or invalid server: não autoriza acesso
+        localStorage.removeItem("token")
+        localStorage.removeItem("user")
+        setIsAuthenticated(false)
       }
 
       setIsValidating(false)
