@@ -54,6 +54,32 @@ app.get("/products", authMiddleware, async (req, res) => {
     res.json(result.rows)
 })
 
+// SEED or restore default products
+app.post("/products/seed", authMiddleware, async (req, res) => {
+    const defaultProducts = [
+      { name: 'Anel Solitário Prata 925', price: 150.00, stock: 5 },
+      { name: 'Brinco Argola Média', price: 120.00, stock: 8 },
+      { name: 'Colar Coração', price: 180.00, stock: 3 },
+      { name: 'Pulseira Veneziana', price: 250.00, stock: 4 }
+    ];
+
+    try {
+      await pool.query('DELETE FROM products');
+      const results = [];
+      for (const p of defaultProducts) {
+        const r = await pool.query(
+          "INSERT INTO products (name, price, stock) VALUES ($1, $2, $3) RETURNING *",
+          [p.name, p.price, p.stock]
+        );
+        results.push(r.rows[0]);
+      }
+      res.json({ success: true, products: results });
+    } catch (error) {
+      console.error('Error seeding products', error);
+      res.status(500).json({ success: false, message: 'Erro ao restaurar produtos' });
+    }
+})
+
 // POST
 app.post("/products", authMiddleware, async (req, res) => {
     const { name, price, stock } = req.body

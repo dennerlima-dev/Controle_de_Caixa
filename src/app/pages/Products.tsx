@@ -23,6 +23,42 @@ export function Products() {
     stock: 0,
   });
 
+  const restoreDefaults = async () => {
+    try {
+      const token = localStorage.getItem('token')
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/products/seed`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: token || '',
+        },
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setFormData({
+          name: '',
+          categoryId: categories[0]?.id || '',
+          sku: '',
+          silverWeight: 0,
+          silverType: '925',
+          salePrice: 0,
+          costPrice: 0,
+          description: '',
+          stock: 0,
+        })
+        if (data.products) {
+          // Use APP context refresh after successful restore
+          window.location.reload()
+        }
+      } else {
+        toast.error('Falha ao restaurar produtos.');
+      }
+    } catch (error) {
+      toast.error('Erro ao conectar com o servidor.');
+    }
+  }
+
   const openModal = (product?: Product) => {
     if (product) {
       setEditingProduct(product);
@@ -101,13 +137,21 @@ export function Products() {
           <h2 className="text-2xl font-semibold text-gray-900">Produtos</h2>
           <p className="text-gray-600 mt-1">Gerencie o catálogo de joias</p>
         </div>
-        <button
-          onClick={() => openModal()}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
-        >
-          <Plus className="w-5 h-5" />
-          Novo Produto
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => openModal()}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+          >
+            <Plus className="w-5 h-5" />
+            Novo Produto
+          </button>
+          <button
+            onClick={restoreDefaults}
+            className="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors"
+          >
+            Restaurar Produtos
+          </button>
+        </div>
       </div>
 
       {/* Filters */}
