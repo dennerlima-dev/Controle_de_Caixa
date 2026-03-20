@@ -98,13 +98,23 @@ export function Products() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.name || !formData.categoryId || !formData.sku) {
-      toast.error('Preencha todos os campos obrigatórios');
+    if (!formData.name || !formData.categoryId) {
+      toast.error('Nome e Categoria são obrigatórios');
+      return;
+    }
+
+    if (!editingProduct && !formData.sku) {
+      toast.error('SKU é obrigatório ao cadastrar novo produto');
       return;
     }
 
     if (editingProduct) {
-      updateProduct(editingProduct.id, formData);
+      const updatedData = {
+        ...editingProduct,
+        ...formData,
+        sku: formData.sku || editingProduct.sku,
+      };
+      updateProduct(editingProduct.id, updatedData);
       toast.success('Produto atualizado com sucesso');
     } else {
       addProduct({ ...formData, reservedStock: 0 });
