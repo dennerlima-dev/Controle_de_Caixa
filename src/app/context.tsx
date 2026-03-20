@@ -218,6 +218,55 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const generateId = () => Math.random().toString(36).substr(2, 9);
 
+  const logout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    setCurrentUser(null);
+    window.location.href = "/login";
+  };
+
+  const [sessionStart, setSessionStart] = useState<number | null>(null);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const resetTimer = () => {
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    timeoutRef.current = setTimeout(logout, 30 * 60 * 1000); // 30 min inactivity
+  };
+
+  // Load user and session on mount
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    const user = localStorage.getItem("user");
+    if (token && user) {
+      setCurrentUser(JSON.parse(user));
+      setSessionStart(Date.now());
+    }
+  }, []);
+
+  // Session expiration check
+  useEffect(() => {
+    if (!sessionStart) return;
+    const checkSession = () => {
+      if (Date.now() - sessionStart > 60 * 60 * 1000) { // 1 hour
+        logout();
+      }
+    };
+    const interval = setInterval(checkSession, 60000); // check every minute
+    return () => clearInterval(interval);
+  }, [sessionStart]);
+
+  // Inactivity timer
+  useEffect(() => {
+    if (!sessionStart) return;
+    const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'];
+    events.forEach(event => document.addEventListener(event, resetTimer));
+    resetTimer(); // start timer
+    return () => {
+      events.forEach(event => document.removeEventListener(event, resetTimer));
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
+  }, [sessionStart]);
+
   const value: AppContextType = {
     currentUser,
     users,
