@@ -88,6 +88,15 @@ export function Layout() {
               <p className="text-sm font-medium text-gray-900">{currentUser.name}</p>
               <p className="text-xs text-gray-500 capitalize">{currentUser.role}</p>
             </div>
+            <button
+              onClick={() => {
+                localStorage.removeItem("token")
+                window.location.href = "/login"
+              }}
+              className="bg-red-500 text-white px-3 py-1 rounded"
+            >
+              Sair
+            </button>
           </div>
         </div>
       </header>
