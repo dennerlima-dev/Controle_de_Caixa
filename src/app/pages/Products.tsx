@@ -108,16 +108,25 @@ export function Products() {
       return;
     }
 
+    const normalizedForm = {
+      ...formData,
+      salePrice: Number(formData.salePrice || 0),
+      costPrice: Number(formData.costPrice || 0),
+      stock: Number(formData.stock || 0),
+      silverWeight: Number(formData.silverWeight || 0),
+      sku: formData.sku?.trim() || '',
+    };
+
     if (editingProduct) {
       const updatedData = {
         ...editingProduct,
-        ...formData,
-        sku: formData.sku || editingProduct.sku,
+        ...normalizedForm,
+        sku: normalizedForm.sku || editingProduct.sku,
       };
       updateProduct(editingProduct.id, updatedData);
       toast.success('Produto atualizado com sucesso');
     } else {
-      addProduct({ ...formData, reservedStock: 0 });
+      addProduct({ ...normalizedForm, reservedStock: 0 });
       toast.success('Produto cadastrado com sucesso');
     }
 
@@ -226,8 +235,8 @@ export function Products() {
                     </td>
                     <td className="px-4 py-3">
                       <div className="text-sm">
-                        <p className="font-semibold text-green-600">R$ {product.salePrice.toFixed(2)}</p>
-                        <p className="text-gray-500">Custo: R$ {product.costPrice.toFixed(2)}</p>
+                        <p className="font-semibold text-green-600">R$ {(Number(product.salePrice) || 0).toFixed(2)}</p>
+                        <p className="text-gray-500">Custo: R$ {(Number(product.costPrice) || 0).toFixed(2)}</p>
                       </div>
                     </td>
                     <td className="px-4 py-3">
