@@ -13,11 +13,25 @@ import { Reservations } from './pages/Reservations';
 import { ServiceOrders } from './pages/ServiceOrders';
 import { SilverEvaluation } from './pages/SilverEvaluation';
 import { NotFound } from './pages/NotFound';
+import { Login } from './pages/Login'
+import { ProtectedRoute } from './components/ProtectedRoute'
 
 export const router = createBrowserRouter([
+
+  // ROTA PÚBLICA (LOGIN)
+  { 
+    path: 'login',
+    Component: Login
+  },
+
+  // ROTAS PROTEGIDAS
   {
     path: '/',
-    Component: Layout,
+    element: (
+      <ProtectedRoute>
+        <Layout />
+      </ProtectedRoute>
+    ),
     children: [
       { index: true, Component: Dashboard },
       { path: 'pdv', Component: PDV },
