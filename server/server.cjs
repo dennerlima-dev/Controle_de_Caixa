@@ -66,6 +66,36 @@ app.post("/products", authMiddleware, async (req, res) => {
     res.json(result.rows[0])
 })
 
+// PUT
+app.put("/products/:id", authMiddleware, async (req, res) => {
+    const { id } = req.params
+    const { name, price, stock } = req.body
+
+    const result = await pool.query(
+        "UPDATE products SET name = $1, price = $2, stock = $3 WHERE id = $4 RETURNING *",
+        [name, price, stock, id]
+    )
+
+    if (result.rows.length === 0) {
+        return res.status(404).json({ message: "Produto não encontrado" })
+    }
+
+    res.json(result.rows[0])
+})
+
+// DELETE
+app.delete("/products/:id", authMiddleware, async (req, res) => {
+    const { id } = req.params
+
+    const result = await pool.query("DELETE FROM products WHERE id = $1 RETURNING *", [id])
+
+    if (result.rows.length === 0) {
+        return res.status(404).json({ message: "Produto não encontrado" })
+    }
+
+    res.json({ message: "Produto excluído com sucesso" })
+})
+
 
 app.post("/register", async (req, res) => {
   const { name, email, password, role } = req.body

@@ -12,6 +12,7 @@ import type {
   ServiceOrder,
   SilverEvaluation,
 } from './types';
+import { getProducts, createProduct, updateProduct, deleteProduct } from '../api/products';
 
 interface AppContextType {
   // User
@@ -177,26 +178,29 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   // Active cash register
   const activeCashRegister = cashRegisters.find((cr) => cr.status === 'aberto') || null;
 
-  // Load from localStorage on mount
+  // Load data from API on mount
   useEffect(() => {
-    const saved = localStorage.getItem('joalheria-data');
-    if (saved) {
+    const loadData = async () => {
       try {
-        const data = JSON.parse(saved);
-        if (data.categories) setCategories(data.categories);
-        if (data.products) setProducts(data.products);
-        if (data.clients) setClients(data.clients);
-        if (data.sales) setSales(data.sales);
-        if (data.cashRegisters) setCashRegisters(data.cashRegisters);
-        if (data.cashEntries) setCashEntries(data.cashEntries);
-        if (data.stockMovements) setStockMovements(data.stockMovements);
-        if (data.reservations) setReservations(data.reservations);
-        if (data.serviceOrders) setServiceOrders(data.serviceOrders);
-        if (data.silverEvaluations) setSilverEvaluations(data.silverEvaluations);
-      } catch (e) {
-        console.error('Error loading data:', e);
+        // Load products from API
+        const productsData = await getProducts();
+        setProducts(productsData);
+      } catch (error) {
+        console.error('Error loading products:', error);
+        // Fallback to localStorage if API fails
+        const saved = localStorage.getItem('joalheria-data');
+        if (saved) {
+          try {
+            const data = JSON.parse(saved);
+            if (data.products) setProducts(data.products);
+          } catch (e) {
+            console.error('Error loading data:', e);
+          }
+        }
       }
-    }
+    };
+
+    loadData();
   }, []);
 
   // Save to localStorage whenever data changes
@@ -295,9 +299,37 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     deleteCategory: (id) => setCategories(categories.filter((c) => c.id !== id)),
     
     products,
-    addProduct: (product) => setProducts([...products, { ...product, id: generateId() }]),
-    updateProduct: (id, updates) => setProducts(products.map((p) => (p.id === id ? { ...p, ...updates } : p))),
-    deleteProduct: (id) => setProducts(products.filter((p) => p.id !== id)),
+    addProduct: async (product) => {
+      try {
+        const newProduct = await createProduct(product);
+        setProducts([...products, newProduct]);
+      } catch (error) {
+        console.error('Error creating product:', error);
+        // Fallback to local creation
+        const localProduct = { ...product, id: generateId() };
+        setProducts([...products, localProduct]);
+      }
+    },
+    updateProduct: async (id, updates) => {
+      try {
+        const updatedProduct = await updateProduct(id, updates);
+        setProducts(products.map((p) => (p.id === id ? updatedProduct : p)));
+      } catch (error) {
+        console.error('Error updating product:', error);
+        // Fallback to local update
+        setProducts(products.map((p) => (p.id === id ? { ...p, ...updates } : p)));
+      }
+    },
+    deleteProduct: async (id) => {
+      try {
+        await deleteProduct(id);
+        setProducts(products.filter((p) => p.id !== id));
+      } catch (error) {
+        console.error('Error deleting product:', error);
+        // Fallback to local delete
+        setProducts(products.filter((p) => p.id !== id));
+      }
+    },
     
     clients,
     addClient: (client) => setClients([...clients, { ...client, id: generateId() }]),
