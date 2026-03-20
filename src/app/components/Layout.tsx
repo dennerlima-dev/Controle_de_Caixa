@@ -84,10 +84,12 @@ export function Layout() {
                 Caixa Fechado
               </div>
             )}
-            <div className="text-right">
-              <p className="text-sm font-medium text-gray-900">{currentUser.name}</p>
-              <p className="text-xs text-gray-500 capitalize">{currentUser.role}</p>
-            </div>
+            {currentUser && (
+              <div className="text-right">
+                <p className="text-sm font-medium text-gray-900">{currentUser.name}</p>
+                <p className="text-xs text-gray-500 capitalize">{currentUser.role}</p>
+              </div>
+            )}
             <button
               onClick={() => {
                 localStorage.removeItem("token")

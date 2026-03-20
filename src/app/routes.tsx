@@ -14,6 +14,7 @@ import { ServiceOrders } from './pages/ServiceOrders';
 import { SilverEvaluation } from './pages/SilverEvaluation';
 import { NotFound } from './pages/NotFound';
 import { Login } from './pages/Login'
+import { Register } from './pages/Register'
 import { ProtectedRoute } from './components/ProtectedRoute'
 
 export const router = createBrowserRouter([
@@ -22,6 +23,10 @@ export const router = createBrowserRouter([
   { 
     path: 'login',
     Component: Login
+  },
+  {
+    path: 'register',
+    Component: Register
   },
 
   // ROTAS PROTEGIDAS

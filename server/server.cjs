@@ -11,7 +11,17 @@ const pool = new Pool({
     ssl: { rejectUnauthorized: false}
 })
 
-// CRIAR TABELA
+// CRIAR TABELAS
+pool.query(`
+CREATE TABLE IF NOT EXISTS users (
+id SERIAL PRIMARY KEY,
+name TEXT,
+email TEXT UNIQUE,
+password TEXT,
+role TEXT DEFAULT 'cliente'
+)
+`)
+
 pool.query(`
 CREATE TABLE IF NOT EXISTS products (
 id SERIAL PRIMARY KEY,
@@ -19,6 +29,13 @@ name TEXT,
 price REAL,
 stock INTEGER
 )
+`)
+
+// Criar usuário admin se não existir
+pool.query(`
+INSERT INTO users (name, email, password, role) 
+VALUES ('Admin', 'admin', 'aguaesal06', 'admin')
+ON CONFLICT (email) DO NOTHING
 `)
 
 function authMiddleware(req, res, next) {
@@ -50,15 +67,34 @@ app.post("/products", authMiddleware, async (req, res) => {
 })
 
 
+app.post("/register", async (req, res) => {
+  const { name, email, password, role } = req.body
+
+  try {
+    const result = await pool.query(
+      "INSERT INTO users (name, email, password, role) VALUES ($1, $2, $3, $4) RETURNING id, name, email, role",
+      [name, email, password, role || 'cliente']
+    )
+    res.json({ success: true, user: result.rows[0] })
+  } catch (err) {
+    res.status(400).json({ success: false, message: "Email já existe ou erro no cadastro" })
+  }
+})
+
 app.listen(3000, () => {
 console.log("Servidor rodando")
 })
 
-app.post("/login", (req, res) => {
+app.post("/login", async (req, res) => {
   const { username, password } = req.body
 
-  if (username === "admin" && password === "aguaesal06") {
-    return res.json({ success: true, token: "123456" })
+  try {
+    const result = await pool.query("SELECT * FROM users WHERE email = $1 AND password = $2", [username, password])
+    if (result.rows.length > 0) {
+      return res.json({ success: true, token: "123456", user: result.rows[0] })
+    }
+  } catch (err) {
+    console.error("DB error:", err)
   }
 
   res.status(401).json({ success: false, message: "Credenciais inválidas" })

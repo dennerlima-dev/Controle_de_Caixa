@@ -1,4 +1,6 @@
 import { useState } from "react"
+import { Link } from "react-router"
+import { apiFetch } from "../../api/api"
 
 export function Login() {
   const [username, setUsername] = useState("")
@@ -7,11 +9,8 @@ export function Login() {
 
   async function handleLogin() {
     try {
-      const res = await fetch(import.meta.env.VITE_API_URL + "/login", {
+      const res = await apiFetch("/login", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
         body: JSON.stringify({ username, password })
       })
 
@@ -19,6 +18,9 @@ export function Login() {
 
       if (data.token) {
         localStorage.setItem("token", data.token)
+        if (data.user) {
+          localStorage.setItem("user", JSON.stringify(data.user))
+        }
         window.location.href = "/"
       } else {
         setError("Usuário ou senha inválidos")
@@ -63,6 +65,10 @@ export function Login() {
         >
           Entrar
         </button>
+
+        <p className="text-center mt-4">
+          Não tem conta? <Link to="/register" className="text-blue-500 hover:underline">Cadastrar</Link>
+        </p>
 
       </div>
     </div>

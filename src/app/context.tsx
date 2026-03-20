@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import type {
   User,
   Category,
@@ -15,8 +15,9 @@ import type {
 
 interface AppContextType {
   // User
-  currentUser: User;
+  currentUser: User | null;
   users: User[];
+  logout: () => void;
   
   // Categories
   categories: Category[];
@@ -160,7 +161,7 @@ const mockClients: Client[] = [
 ];
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
-  const [currentUser] = useState<User>(mockUser);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [users] = useState<User[]>([mockUser]);
   const [categories, setCategories] = useState<Category[]>(mockCategories);
   const [products, setProducts] = useState<Product[]>(mockProducts);
@@ -220,6 +221,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const value: AppContextType = {
     currentUser,
     users,
+    logout,
     
     categories,
     addCategory: (category) => setCategories([...categories, { ...category, id: generateId() }]),
