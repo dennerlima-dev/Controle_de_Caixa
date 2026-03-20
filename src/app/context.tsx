@@ -184,7 +184,23 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       try {
         // Load products from API
         const productsData = await getProducts();
-        setProducts(productsData);
+
+        const normalizedProducts = productsData.map((prod: any) => ({
+          id: prod.id?.toString() ?? generateId(),
+          name: prod.name ?? 'Unnamed Product',
+          categoryId: prod.categoryId ?? prod.category_id ?? categories[0]?.id ?? 'cat-1',
+          sku: prod.sku ?? '',
+          silverWeight: Number(prod.silverWeight ?? prod.silver_weight ?? 0),
+          silverType: prod.silverType ?? prod.silver_type ?? '925',
+          salePrice: Number(prod.salePrice ?? prod.sale_price ?? prod.price ?? 0),
+          costPrice: Number(prod.costPrice ?? prod.cost_price ?? prod.price ?? 0),
+          description: prod.description ?? '',
+          stock: Number(prod.stock ?? 0),
+          reservedStock: Number(prod.reservedStock ?? prod.reserved_stock ?? 0),
+          photo: prod.photo ?? undefined,
+        }));
+
+        setProducts(normalizedProducts);
       } catch (error) {
         console.error('Error loading products:', error);
         // Fallback to localStorage if API fails
@@ -201,7 +217,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     };
 
     loadData();
-  }, []);
+  }, [categories]);
 
   // Save to localStorage whenever data changes
   useEffect(() => {
