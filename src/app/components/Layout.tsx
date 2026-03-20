@@ -1,4 +1,4 @@
-import { Outlet, Link, useLocation } from 'react-router';
+import { Outlet, Link, useLocation, Navigate } from 'react-router';
 import { useApp } from '../context';
 import {
   LayoutDashboard,
@@ -34,6 +34,11 @@ const navigation = [
 export function Layout() {
   const location = useLocation();
   const { currentUser, activeCashRegister } = useApp();
+
+  // If no user is authenticated, redirect to login
+  if (!currentUser) {
+    return <Navigate to="/login" replace />;
+  }
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (

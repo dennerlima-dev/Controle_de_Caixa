@@ -221,6 +221,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const logout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
+    localStorage.removeItem("joalheria-data"); // Clear all cached data
     setCurrentUser(null);
     window.location.href = "/login";
   };
@@ -237,9 +238,25 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const token = localStorage.getItem("token");
     const user = localStorage.getItem("user");
+
+    // Only set user if we have both token and user data
     if (token && user) {
-      setCurrentUser(JSON.parse(user));
-      setSessionStart(Date.now());
+      try {
+        const userData = JSON.parse(user);
+        setCurrentUser(userData);
+        setSessionStart(Date.now());
+      } catch (error) {
+        // Invalid user data, clear everything
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        localStorage.removeItem("joalheria-data");
+      }
+    } else {
+      // No valid auth data, ensure clean state
+      setCurrentUser(null);
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      localStorage.removeItem("joalheria-data");
     }
   }, []);
 
