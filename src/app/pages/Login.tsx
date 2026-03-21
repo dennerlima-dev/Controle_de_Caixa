@@ -18,9 +18,12 @@ export function Login() {
 
       if (data.token) {
         localStorage.setItem("token", data.token)
-        if (data.user) {
-          localStorage.setItem("user", JSON.stringify(data.user))
-        }
+
+        // SALVA DADOS SEPARADOS
+        localStorage.setItem("userId", data.user.id)
+        localStorage.setItem("userName", data.user.name)
+        localStorage.setItem("userRole", data.user.role)
+        
         window.location.href = "/"
       } else {
         setError("Usuário ou senha inválidos")
