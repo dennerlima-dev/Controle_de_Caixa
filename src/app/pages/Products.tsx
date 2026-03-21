@@ -219,7 +219,9 @@ export function Products() {
             <tbody className="divide-y">
               {filteredProducts.map((product) => {
                 const category = categories.find((c) => c.id === product.categoryId);
-                const availableStock = product.stock - product.reservedStock;
+                const normalizedStock = Number(product.stock ?? 0);
+                const normalizedReserved = Number(product.reservedStock ?? 0);
+                const availableStock = normalizedStock - normalizedReserved;
                 return (
                   <tr key={product.id} className="hover:bg-gray-50">
                     <td className="px-4 py-3">

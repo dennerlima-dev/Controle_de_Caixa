@@ -208,7 +208,24 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         if (saved) {
           try {
             const data = JSON.parse(saved);
-            if (data.products) setProducts(data.products);
+            if (data.products) {
+              // Normalize products from localStorage
+              const normalizedFromStorage = data.products.map((prod: any) => ({
+                id: prod.id?.toString() ?? generateId(),
+                name: prod.name ?? 'Unnamed Product',
+                categoryId: prod.categoryId ?? prod.category_id ?? categories[0]?.id ?? 'cat-1',
+                sku: prod.sku ?? '',
+                silverWeight: Number(prod.silverWeight ?? prod.silver_weight ?? 0),
+                silverType: prod.silverType ?? prod.silver_type ?? '925',
+                salePrice: Number(prod.salePrice ?? prod.sale_price ?? prod.price ?? 0),
+                costPrice: Number(prod.costPrice ?? prod.cost_price ?? prod.price ?? 0),
+                description: prod.description ?? '',
+                stock: Number(prod.stock ?? 0),
+                reservedStock: Number(prod.reservedStock ?? prod.reserved_stock ?? 0),
+                photo: prod.photo ?? undefined,
+              }));
+              setProducts(normalizedFromStorage);
+            }
           } catch (e) {
             console.error('Error loading data:', e);
           }
@@ -329,11 +346,30 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     updateProduct: async (id, updates) => {
       try {
         const updatedProduct = await updateProduct(id, updates);
-        setProducts(products.map((p) => (p.id === id ? updatedProduct : p)));
+        // Normalize API response to ensure complete object
+        const normalizedUpdated = {
+          ...products.find(p => p.id === id),
+          ...updatedProduct,
+          id: updatedProduct.id?.toString() ?? id,
+          stock: Number(updatedProduct.stock ?? updatedProduct.price ?? 0),
+          salePrice: Number(updatedProduct.salePrice ?? updatedProduct.sale_price ?? updatedProduct.price ?? 0),
+          costPrice: Number(updatedProduct.costPrice ?? updatedProduct.cost_price ?? updatedProduct.price ?? 0),
+          silverWeight: Number(updatedProduct.silverWeight ?? updatedProduct.silver_weight ?? 0),
+          reservedStock: Number(updatedProduct.reservedStock ?? updatedProduct.reserved_stock ?? 0),
+        };
+        setProducts(products.map((p) => (p.id === id ? normalizedUpdated : p)));
       } catch (error) {
         console.error('Error updating product:', error);
-        // Fallback to local update
-        setProducts(products.map((p) => (p.id === id ? { ...p, ...updates } : p)));
+        // Fallback to local update with proper normalization
+        const normalized = {
+          ...updates,
+          stock: Number(updates.stock ?? 0),
+          salePrice: Number(updates.salePrice ?? 0),
+          costPrice: Number(updates.costPrice ?? 0),
+          silverWeight: Number(updates.silverWeight ?? 0),
+          reservedStock: Number(updates.reservedStock ?? 0),
+        };
+        setProducts(products.map((p) => (p.id === id ? { ...p, ...normalized } : p)));
       }
     },
     deleteProduct: async (id) => {
