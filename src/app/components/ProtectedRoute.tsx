@@ -8,9 +8,9 @@ export function ProtectedRoute({ children }: any) {
   useEffect(() => {
     const validateAuth = async () => {
       const token = localStorage.getItem("token")
-      const user = localStorage.getItem("user")
+      const userId = localStorage.getItem("userId")
 
-      if (!token || !user) {
+      if (!token || !userId) {
         setIsAuthenticated(false)
         setIsValidating(false)
         return
@@ -22,7 +22,7 @@ export function ProtectedRoute({ children }: any) {
         const response = await fetch(`${apiUrl}/auth/validate`, {
           method: 'GET',
           headers: {
-            'Authorization': token,
+            'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
           },
           credentials: 'omit'
