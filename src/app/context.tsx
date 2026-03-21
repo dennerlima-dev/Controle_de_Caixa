@@ -91,60 +91,8 @@ const mockCategories: Category[] = [
   { id: 'cat-6', name: 'Conjuntos', description: 'Conjuntos de joias' },
 ];
 
-const mockProducts: Product[] = [
-  {
-    id: 'prod-1',
-    name: 'Anel Solitário Prata 925',
-    categoryId: 'cat-1',
-    sku: 'AN001',
-    silverWeight: 3.5,
-    silverType: '925',
-    salePrice: 150.00,
-    costPrice: 80.00,
-    description: 'Anel solitário em prata 925 com zircônia',
-    stock: 5,
-    reservedStock: 0,
-  },
-  {
-    id: 'prod-2',
-    name: 'Brinco Argola Média',
-    categoryId: 'cat-2',
-    sku: 'BR001',
-    silverWeight: 2.8,
-    silverType: '925',
-    salePrice: 120.00,
-    costPrice: 60.00,
-    description: 'Brinco de argola média em prata 925',
-    stock: 8,
-    reservedStock: 0,
-  },
-  {
-    id: 'prod-3',
-    name: 'Colar Coração',
-    categoryId: 'cat-3',
-    sku: 'CL001',
-    silverWeight: 5.2,
-    silverType: '925',
-    salePrice: 180.00,
-    costPrice: 95.00,
-    description: 'Colar com pingente de coração em prata 925',
-    stock: 3,
-    reservedStock: 1,
-  },
-  {
-    id: 'prod-4',
-    name: 'Pulseira Veneziana',
-    categoryId: 'cat-4',
-    sku: 'PU001',
-    silverWeight: 8.0,
-    silverType: '925',
-    salePrice: 250.00,
-    costPrice: 130.00,
-    description: 'Pulseira veneziana em prata 925',
-    stock: 4,
-    reservedStock: 0,
-  },
-];
+// Não há mock de produtos por usuário: cada login apresenta inventário próprio via API
+const mockProducts: Product[] = []
 
 const mockClients: Client[] = [
   {
@@ -165,7 +113,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [users] = useState<User[]>([mockUser]);
   const [categories, setCategories] = useState<Category[]>(mockCategories);
-  const [products, setProducts] = useState<Product[]>(mockProducts);
+  const [products, setProducts] = useState<Product[]>([]);
   const [clients, setClients] = useState<Client[]>(mockClients);
   const [sales, setSales] = useState<Sale[]>([]);
   const [cashRegisters, setCashRegisters] = useState<CashRegister[]>([]);
@@ -181,6 +129,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   // Load data from API on mount
   useEffect(() => {
     const loadData = async () => {
+      if (!currentUser) return
+
       try {
         // Load products from API
         const productsData = await getProducts();
@@ -234,7 +184,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     };
 
     loadData();
-  }, [categories]);
+  }, [categories, currentUser]);
 
   // Save to localStorage whenever data changes
   useEffect(() => {
@@ -297,6 +247,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  useEffect(() => {
+    if (!currentUser) {
+      setProducts([])
+      return
+    }
+  }, [currentUser])
+
   // Validate token with backend periodically
   useEffect(() => {
     if (!currentUser) return;
@@ -311,11 +268,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       
       try {
         const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000'
+        const user = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user') || 'null') : null
         const response = await fetch(`${apiUrl}/auth/validate`, {
           method: 'GET',
           headers: {
             'Authorization': token,
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'X-User-Id': user?.id ? String(user.id) : ''
           },
           credentials: 'omit'
         })

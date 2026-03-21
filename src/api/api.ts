@@ -5,11 +5,16 @@ export function getApiUrl() {
 }
 
 export function apiFetch(url: string, options: any = {}) {
+  const token = localStorage.getItem("token") || ""
+  const user = localStorage.getItem("user") ? JSON.parse(localStorage.getItem("user") || "null") : null
+  const userIdHeader = user?.id ? String(user.id) : ""
+
   return fetch(`${API_URL}${url}`, {
     ...options,
     headers: {
       "Content-Type": "application/json",
-      Authorization: localStorage.getItem("token") || "",
+      Authorization: token,
+      "X-User-Id": userIdHeader,
       ...(options.headers || {})
     }
   })
