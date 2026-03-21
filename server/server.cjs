@@ -40,14 +40,14 @@ ALTER TABLE products
 // Criar usuário admin se não existir (nome admin, email admin)
 pool.query(`
 INSERT INTO users (name, email, password, role) 
-VALUES ('admin', 'admin', 'aguaesal06', 'admin')
-ON CONFLICT (email) DO UPDATE SET name = 'admin', password = 'aguaesal06', role = 'admin'
+VALUES ('admin', 'admin@admin.local', 'aguaesal06', 'admin')
+ON CONFLICT (name) DO UPDATE SET email = 'admin@admin.local', password = 'aguaesal06', role = 'admin'
 `)
 
 // Ajustar produtos globais antigos para pertencer ao admin (se ainda não tinham user_id)
 pool.query(`
 UPDATE products
-SET user_id = (SELECT id FROM users WHERE email = 'admin' LIMIT 1)
+SET user_id = (SELECT id FROM users WHERE name = 'admin' LIMIT 1)
 WHERE user_id IS NULL
 `)
 
@@ -230,20 +230,6 @@ app.delete("/products/:id", authMiddleware, async (req, res) => {
     res.status(500).json({ message: 'Erro ao excluir produto' })
   }
 })
-
-// DELETE
-app.delete("/products/:id", authMiddleware, async (req, res) => {
-    const { id } = req.params
-
-    const result = await pool.query("DELETE FROM products WHERE id = $1 RETURNING *", [id])
-
-    if (result.rows.length === 0) {
-        return res.status(404).json({ message: "Produto não encontrado" })
-    }
-
-    res.json({ message: "Produto excluído com sucesso" })
-})
-
 
 app.post("/register", async (req, res) => {
   const { name, email, password, role } = req.body
