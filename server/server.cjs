@@ -81,6 +81,22 @@ function authMiddleware(req, res, next) {
   next()
 }
 
+function tokenMiddleware(req, res, next) {
+  const token = req.headers.authorization
+  if (!token) {
+    console.warn('[AUTH DENIED] No token provided')
+    return res.status(401).json({ message: "Unauthorized - sem token" })
+  }
+
+  const bearerToken = token.startsWith('Bearer ') ? token.slice(7) : token
+  if (bearerToken !== "123456") {
+    console.warn('[AUTH DENIED] Invalid token:', bearerToken)
+    return res.status(403).json({ message: "Unauthorized - token inválido" })
+  }
+
+  next()
+}
+
 function isAdmin(user) {
   return user && user.role === 'admin'
 }
@@ -91,8 +107,12 @@ app.get("/health", (req, res) => {
 })
 
 // Validate token endpoint (protected) - used by frontend
-app.get("/auth/validate", authMiddleware, async (req, res) => {
-  const user = await getUserById(req.userId)
+app.get("/auth/validate", tokenMiddleware, async (req, res) => {
+  const userId = Number(req.headers['x-user-id'])
+  if (!userId || Number.isNaN(userId)) {
+    return res.status(401).json({ message: 'Usuário não identificado' })
+  }
+  const user = await getUserById(userId)
   if (!user) {
     return res.status(401).json({ message: 'Usuário inválido' })
   }
