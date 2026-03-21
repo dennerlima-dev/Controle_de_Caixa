@@ -37,11 +37,18 @@ pool.query(`
 ALTER TABLE products
   ADD COLUMN IF NOT EXISTS user_id INTEGER REFERENCES users(id) ON DELETE CASCADE
 `)
-// Criar usuário admin se não existir
+// Criar usuário admin se não existir (nome admin, email admin)
 pool.query(`
 INSERT INTO users (name, email, password, role) 
-VALUES ('Admin', 'admin', 'aguaesal06', 'admin')
-ON CONFLICT (email) DO NOTHING
+VALUES ('admin', 'admin', 'aguaesal06', 'admin')
+ON CONFLICT (email) DO UPDATE SET name = 'admin', password = 'aguaesal06', role = 'admin'
+`)
+
+// Ajustar produtos globais antigos para pertencer ao admin (se ainda não tinham user_id)
+pool.query(`
+UPDATE products
+SET user_id = (SELECT id FROM users WHERE email = 'admin' LIMIT 1)
+WHERE user_id IS NULL
 `)
 
 // STRICT auth middleware - rejeita qualquer coisa sem token válido
@@ -265,8 +272,12 @@ app.post("/login", async (req, res) => {
   }
 
   try {
-    // Login agora via nome de usuário (name), não email
-    const result = await pool.query("SELECT * FROM users WHERE name = $1 AND password = $2", [username, password])
+    // Login por nome de usuário (case-insensitive)
+    const result = await pool.query(
+      "SELECT * FROM users WHERE LOWER(name) = LOWER($1) AND password = $2",
+      [username, password]
+    )
+
     if (result.rows.length > 0) {
       console.log('[AUTH SUCCESS] User logged in:', username)
       return res.json({ success: true, token: "123456", user: result.rows[0] })
