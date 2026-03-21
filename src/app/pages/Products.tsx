@@ -103,11 +103,6 @@ export function Products() {
       return;
     }
 
-    if (!editingProduct && !formData.sku) {
-      toast.error('SKU é obrigatório ao cadastrar novo produto');
-      return;
-    }
-
     const normalizedForm = {
       ...formData,
       salePrice: Number(formData.salePrice || 0),
@@ -327,7 +322,7 @@ export function Products() {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      SKU {editingProduct ? '(opcional no edit)' : '*'}
+                      SKU (opcional)
                     </label>
                     <input
                       type="text"
