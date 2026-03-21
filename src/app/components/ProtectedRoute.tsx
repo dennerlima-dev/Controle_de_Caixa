@@ -17,25 +17,36 @@ export function ProtectedRoute({ children }: any) {
       }
 
       try {
-        // Validate token with backend
-        const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/products`, {
+        // Validate token with backend auth endpoint
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000'
+        const response = await fetch(`${apiUrl}/auth/validate`, {
+          method: 'GET',
           headers: {
-            Authorization: token
-          }
+            'Authorization': token,
+            'Content-Type': 'application/json'
+          },
+          credentials: 'omit'
         })
 
         if (response.ok) {
           setIsAuthenticated(true)
-        } else {
-          // Token is invalid, clear it
+        } else if (response.status === 401 || response.status === 403) {
+          // Token invalid or expired
           localStorage.removeItem("token")
           localStorage.removeItem("user")
+          localStorage.removeItem("joalheria-data")
+          setIsAuthenticated(false)
+        } else {
+          localStorage.removeItem("token")
+          localStorage.removeItem("user")
+          localStorage.removeItem("joalheria-data")
           setIsAuthenticated(false)
         }
       } catch (error) {
-        // Network error or invalid server: não autoriza acesso
+        // Network error = DENY ACCESS (security first)
         localStorage.removeItem("token")
         localStorage.removeItem("user")
+        localStorage.removeItem("joalheria-data")
         setIsAuthenticated(false)
       }
 

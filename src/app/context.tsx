@@ -297,15 +297,55 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  // Session expiration check
+  // Validate token with backend periodically
+  useEffect(() => {
+    if (!currentUser) return;
+    
+    const validateTokenPeriodically = async () => {
+      const token = localStorage.getItem("token")
+      if (!token) {
+        console.warn('[TOKEN] No token found - forcing logout')
+        logout()
+        return
+      }
+      
+      try {
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000'
+        const response = await fetch(`${apiUrl}/auth/validate`, {
+          method: 'GET',
+          headers: {
+            'Authorization': token,
+            'Content-Type': 'application/json'
+          },
+          credentials: 'omit'
+        })
+        
+        if (!response.ok) {
+          console.warn('[TOKEN] Backend validation failed:', response.status)
+          logout()
+        }
+      } catch (error) {
+        console.error('[TOKEN] Validation error:', error)
+        // Network error but user exists = don't logout, could be temp issue
+        // But on next network success, if token invalid, will logout
+      }
+    };
+    
+    // Validate every 5 minutes
+    const interval = setInterval(validateTokenPeriodically, 5 * 60 * 1000)
+    return () => clearInterval(interval)
+  }, [currentUser]);
+
+  // Session expiration check (1 hour timeout)
   useEffect(() => {
     if (!sessionStart) return;
     const checkSession = () => {
-      if (Date.now() - sessionStart > 60 * 60 * 1000) { // 1 hour
-        logout();
+      if (Date.now() - sessionStart > 60 * 60 * 1000) {
+        console.warn('[SESSION] Session expired after 1 hour')
+        logout()
       }
     };
-    const interval = setInterval(checkSession, 60000); // check every minute
+    const interval = setInterval(checkSession, 60000);
     return () => clearInterval(interval);
   }, [sessionStart]);
 
