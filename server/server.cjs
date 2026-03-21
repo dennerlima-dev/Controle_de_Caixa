@@ -41,7 +41,7 @@ ALTER TABLE products
 pool.query(`
 INSERT INTO users (name, email, password, role) 
 VALUES ('admin', 'admin@admin.local', 'aguaesal06', 'admin')
-ON CONFLICT (name) DO UPDATE SET email = 'admin@admin.local', password = 'aguaesal06', role = 'admin'
+ON CONFLICT (email) DO UPDATE SET name = 'admin', password = 'aguaesal06', role = 'admin'
 `)
 
 // Ajustar produtos globais antigos para pertencer ao admin (se ainda não tinham user_id)
