@@ -16,18 +16,15 @@ export function Login() {
 
       const data = await res.json()
 
-      if (res.ok) {
+      if (res.ok && data.success) {
         localStorage.setItem("token", data.token)
-
-        localStorage.setItem("userId", data.user.id)
-        localStorage.setItem("userName", data.user.name)
-        localStorage.setItem("userRole", data.user.role)
-
+        localStorage.setItem("userId", String(data.user.id))
         localStorage.setItem("user", JSON.stringify(data.user))
+        
         //REDIRECIONA PARA DASHBOARD
-        window.location.href = "/"}
-        else {
-          setError(data.error || "Usuário ou senha inválidos")
+        window.location.href = "/"
+      } else {
+          setError(data.message || "Usuário ou senha inválidos")
         }
 
     } catch {

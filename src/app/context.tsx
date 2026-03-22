@@ -241,9 +241,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     } else {
       // No valid auth data, ensure clean state
       setCurrentUser(null);
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
-      localStorage.removeItem("joalheria-data");
     }
   }, []);
 
