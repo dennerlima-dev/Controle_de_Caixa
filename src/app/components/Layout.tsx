@@ -86,6 +86,15 @@ export function Layout() {
             )}
             <div className="text-right">
               <p className="text-sm font-medium text-gray-900">{currentUser.name}</p>
+              <button
+                onClick={() => {
+                  localStorage.removeItem("auth");
+                  window.location.href = "/login";
+                }}
+                className="text-xs text-red-500"
+              >
+                Sair
+              </button>
               <p className="text-xs text-gray-500 capitalize">{currentUser.role}</p>
             </div>
           </div>

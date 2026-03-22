@@ -1,3 +1,5 @@
+import { Login } from './pages/Login';
+import { PrivateRoute } from './components/PrivateRoute';
 import { createBrowserRouter } from 'react-router';
 import { Layout } from './components/Layout';
 import { Dashboard } from './pages/Dashboard';
@@ -16,8 +18,16 @@ import { NotFound } from './pages/NotFound';
 
 export const router = createBrowserRouter([
   {
+    path: '/login',
+    Component: Login,
+  },
+  {
     path: '/',
-    Component: Layout,
+    element: (
+      <PrivateRoute>
+        <Layout />
+      </PrivateRoute>
+    ),
     children: [
       { index: true, Component: Dashboard },
       { path: 'pdv', Component: PDV },
