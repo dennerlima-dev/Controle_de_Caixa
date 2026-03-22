@@ -18,16 +18,17 @@ export function Login() {
 
       if (res.ok) {
         localStorage.setItem("token", data.token)
-        
+
         localStorage.setItem("userId", data.user.id)
         localStorage.setItem("userName", data.user.name)
         localStorage.setItem("userRole", data.user.role)
 
-  // 🔥 REDIRECIONA PARA DASHBOARD
-  window.location.href = "/dashboard"
-} else {
-  setError(data.error || "Usuário ou senha inválidos")
-}
+        localStorage.setItem("user", JSON.stringify(data.user))
+        //REDIRECIONA PARA DASHBOARD
+        window.location.href = "/"}
+        else {
+          setError(data.error || "Usuário ou senha inválidos")
+        }
 
     } catch {
       setError("Erro ao conectar com servidor")
