@@ -1,16 +1,21 @@
 import { useState } from "react"
-import { Link } from "react-router"
-import { apiFetch } from "../../api/api"
+import { Link, useNavigate } from "react-router-dom"
+// import { apiFetch } from "../../api/api"
 
 export function Login() {
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
 
+  const navigate = useNavigate()
+
   async function handleLogin() {
     try {
-      const res = await apiFetch("/login", {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/login`, {
         method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
         body: JSON.stringify({ username, password })
       })
 
@@ -20,9 +25,10 @@ export function Login() {
         localStorage.setItem("token", data.token)
         localStorage.setItem("userId", String(data.user.id))
         localStorage.setItem("user", JSON.stringify(data.user))
+
+        // Usar navegação do React
+        navigate("/")
         
-        //REDIRECIONA PARA DASHBOARD
-        window.location.href = "/"
       } else {
           setError(data.message || "Usuário ou senha inválidos")
         }
