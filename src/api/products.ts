@@ -6,3 +6,19 @@ export async function getProducts() {
 
   return data
 }
+
+export async function createProduct(product: any) {
+  const response = await fetch(`${API_URL}/products`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      name: product.name,
+      price: product.salePrice,
+      stock: product.stock,
+    }),
+  });
+
+  return response.json();
+}

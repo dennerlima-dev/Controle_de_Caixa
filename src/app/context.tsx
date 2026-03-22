@@ -1,3 +1,4 @@
+import { getProducts } from '../api/products';
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import type {
   User,
@@ -160,10 +161,37 @@ const mockClients: Client[] = [
 ];
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
+
   const [currentUser] = useState<User>(mockUser);
   const [users] = useState<User[]>([mockUser]);
   const [categories, setCategories] = useState<Category[]>(mockCategories);
-  const [products, setProducts] = useState<Product[]>(mockProducts);
+  const [products, setProducts] = useState<Product[]>([]);
+
+    useEffect(() => {
+  async function loadProducts() {
+    const data = await getProducts();
+
+    // adaptar dados do backend para seu formato
+    const formatted = data.map((p: any) => ({
+      id: String(p.id),
+      name: p.name,
+      categoryId: '', // temporário
+      sku: '',
+      silverWeight: 0,
+      silverType: '925',
+      salePrice: p.price,
+      costPrice: p.price,
+      description: '',
+      stock: p.stock,
+      reservedStock: 0,
+    }));
+
+    setProducts(formatted);
+  }
+
+  loadProducts();
+}, []);
+
   const [clients, setClients] = useState<Client[]>(mockClients);
   const [sales, setSales] = useState<Sale[]>([]);
   const [cashRegisters, setCashRegisters] = useState<CashRegister[]>([]);
@@ -176,27 +204,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   // Active cash register
   const activeCashRegister = cashRegisters.find((cr) => cr.status === 'aberto') || null;
 
-  // Load from localStorage on mount
-  useEffect(() => {
-    const saved = localStorage.getItem('joalheria-data');
-    if (saved) {
-      try {
-        const data = JSON.parse(saved);
-        if (data.categories) setCategories(data.categories);
-        if (data.products) setProducts(data.products);
-        if (data.clients) setClients(data.clients);
-        if (data.sales) setSales(data.sales);
-        if (data.cashRegisters) setCashRegisters(data.cashRegisters);
-        if (data.cashEntries) setCashEntries(data.cashEntries);
-        if (data.stockMovements) setStockMovements(data.stockMovements);
-        if (data.reservations) setReservations(data.reservations);
-        if (data.serviceOrders) setServiceOrders(data.serviceOrders);
-        if (data.silverEvaluations) setSilverEvaluations(data.silverEvaluations);
-      } catch (e) {
-        console.error('Error loading data:', e);
-      }
-    }
-  }, []);
 
   // Save to localStorage whenever data changes
   useEffect(() => {
@@ -212,7 +219,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       serviceOrders,
       silverEvaluations,
     };
-    localStorage.setItem('joalheria-data', JSON.stringify(data));
+
   }, [categories, products, clients, sales, cashRegisters, cashEntries, stockMovements, reservations, serviceOrders, silverEvaluations]);
 
   const generateId = () => Math.random().toString(36).substr(2, 9);
@@ -356,6 +363,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 }
+
 
 export function useApp() {
   const context = useContext(AppContext);
