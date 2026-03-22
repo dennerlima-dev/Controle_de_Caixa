@@ -25,7 +25,14 @@ export function Products() {
 
   const restoreDefaults = async () => {
     try {
-      const response = await apiFetch('/products/seed', { method: 'POST' })
+      const token = localStorage.getItem('token')
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/products/seed`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: token || '',
+        },
+      })
 
       if (response.ok) {
         const data = await response.json()
