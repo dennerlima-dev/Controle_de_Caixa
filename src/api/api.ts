@@ -5,11 +5,20 @@ export function getApiUrl() {
 }
 
 export function apiFetch(url: string, options: any = {}) {
+  const token = localStorage.getItem("token") || ""
+  const userId = localStorage.getItem("userId") || ""
+
   return fetch(`${API_URL}${url}`, {
     ...options,
     headers: {
       "Content-Type": "application/json",
-      Authorization: localStorage.getItem("token") || "",
+
+      // 🔥 CORREÇÃO 1: Bearer
+      Authorization: token ? `Bearer ${token}` : "",
+
+      // 🔥 CORREÇÃO 2: userId direto
+      "X-User-Id": userId,
+
       ...(options.headers || {})
     }
   })
