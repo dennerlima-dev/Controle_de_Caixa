@@ -179,10 +179,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       sku: '',
       silverWeight: 0,
       silverType: '925',
-      salePrice: p.price,
-      costPrice: p.price,
+      salePrice: Number(p.price) || 0,
+      costPrice: Number(p.price) || 0,
       description: '',
-      stock: p.stock,
+      stock: Number(p.stock) || 0,
       reservedStock: 0,
     }));
 
