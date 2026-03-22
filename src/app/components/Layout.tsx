@@ -85,7 +85,7 @@ export function Layout() {
               </div>
             )}
             <div className="text-right">
-              <p className="text-sm font-medium text-gray-900">{currentUser.name}</p>
+              <p className="text-sm font-medium text-gray-900 px-2 py-1">{currentUser.name}</p>
               <button
                 onClick={() => {
                   localStorage.removeItem("auth");
