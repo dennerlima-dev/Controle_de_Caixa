@@ -95,7 +95,7 @@ export function Layout() {
               >
                 Sair
               </button>
-              <p className="text-xs text-gray-500 capitalize">{currentUser.role}</p>
+              <p className="text-base text-gray-500 capitalize">{currentUser.role}</p>
             </div>
           </div>
         </div>
