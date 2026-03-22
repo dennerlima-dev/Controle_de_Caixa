@@ -214,7 +214,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   };
 
   const [sessionStart, setSessionStart] = useState<number | null>(null);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const resetTimer = () => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
@@ -254,46 +254,55 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
   }, [currentUser])
 
+
+  // 🚨 DESATIVADO TEMPORARIAMENTE (BUG LOGIN)
   // Validate token with backend periodically
-  useEffect(() => {
-    if (!currentUser) return;
-    
-    const validateTokenPeriodically = async () => {
-      const token = localStorage.getItem("token")
-      if (!token) {
-        console.warn('[TOKEN] No token found - forcing logout')
-        logout()
-        return
-      }
-      
-      try {
-        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000'
-        const user = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user') || 'null') : null
-        const response = await fetch(`${apiUrl}/auth/validate`, {
-          method: 'GET',
-          headers: {
-            'Authorization': token,
-            'Content-Type': 'application/json',
-            'X-User-Id': user?.id ? String(user.id) : ''
-          },
-          credentials: 'omit'
-        })
-        
-        if (!response.ok) {
-          console.warn('[TOKEN] Backend validation failed:', response.status)
-          logout()
-        }
-      } catch (error) {
-        console.error('[TOKEN] Validation error:', error)
+  //
+  //useEffect(() => {
+  //  if (!currentUser) return;
+  //  
+  //  const validateTokenPeriodically = async () => {
+  //    const token = localStorage.getItem("token")
+  //    if (!token) {
+  //      console.warn('[TOKEN] No token found - forcing logout')
+  //      logout()
+  //      return
+  //    }
+  //    
+  //    try {
+  //      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000'
+  //      const user = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user') || 'null') : null
+  //      const response = await fetch(`${apiUrl}/auth/validate`, {
+  //        method: 'GET',
+  //        headers: {
+  //          'Authorization': `Bearer ${token}`,
+  //          'Content-Type': 'application/json',
+  //          'X-User-Id': user?.id ? String(user.id) : ''
+  //        },
+  //        credentials: 'omit'
+  //      })
+  //      
+  //      if (!response.ok) {
+  //        console.warn('[TOKEN] Backend validation failed:', response.status)
+  //        logout()
+  //      }
+  //   } catch (error) {
+  //      console.error('[TOKEN] Validation error:', error)
         // Network error but user exists = don't logout, could be temp issue
         // But on next network success, if token invalid, will logout
-      }
-    };
-    
+  //    }
+  //  };
+  //  
     // Validate every 5 minutes
-    const interval = setInterval(validateTokenPeriodically, 5 * 60 * 1000)
-    return () => clearInterval(interval)
-  }, [currentUser]);
+  //  const interval = setInterval(validateTokenPeriodically, 5 * 60 * 1000)
+  //  return () => clearInterval(interval)
+  //}, [currentUser]);
+
+
+
+
+
+
 
   // Session expiration check (1 hour timeout)
   useEffect(() => {
@@ -333,7 +342,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     products,
     addProduct: async (product) => {
       try {
-        const newProduct = await createProduct(product);
+        const newProduct = await createProduct({
+          name: product.name,
+          price: product.salePrice, //CONVERTE
+          stock: product.stock,
+        });
         setProducts([...products, newProduct]);
       } catch (error) {
         console.error('Error creating product:', error);
@@ -411,8 +424,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           category: 'venda',
           amount: newSale.total,
           description: `Venda #${newSale.id} - ${newSale.items.length} item(ns)`,
-          userId: currentUser.id,
-          userName: currentUser.name,
+          userId: currentUser?.id || '',
+          userName: currentUser?.name || '',
         };
         setCashEntries((prev) => [...prev, { ...cashEntry, id: generateId() }]);
       }
