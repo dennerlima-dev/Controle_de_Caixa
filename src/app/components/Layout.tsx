@@ -91,7 +91,7 @@ export function Layout() {
                   localStorage.removeItem("auth");
                   window.location.href = "/login";
                 }}
-                className="text-xs text-red-500"
+                className="text-xs text-red-500 px-2 py-1"
               >
                 Sair
               </button>
