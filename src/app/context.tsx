@@ -91,60 +91,8 @@ const mockCategories: Category[] = [
   { id: 'cat-6', name: 'Conjuntos', description: 'Conjuntos de joias' },
 ];
 
-const mockProducts: Product[] = [
-  {
-    id: 'prod-1',
-    name: 'Anel Solitário Prata 925',
-    categoryId: 'cat-1',
-    sku: 'AN001',
-    silverWeight: 3.5,
-    silverType: '925',
-    salePrice: 150.00,
-    costPrice: 80.00,
-    description: 'Anel solitário em prata 925 com zircônia',
-    stock: 5,
-    reservedStock: 0,
-  },
-  {
-    id: 'prod-2',
-    name: 'Brinco Argola Média',
-    categoryId: 'cat-2',
-    sku: 'BR001',
-    silverWeight: 2.8,
-    silverType: '925',
-    salePrice: 120.00,
-    costPrice: 60.00,
-    description: 'Brinco de argola média em prata 925',
-    stock: 8,
-    reservedStock: 0,
-  },
-  {
-    id: 'prod-3',
-    name: 'Colar Coração',
-    categoryId: 'cat-3',
-    sku: 'CL001',
-    silverWeight: 5.2,
-    silverType: '925',
-    salePrice: 180.00,
-    costPrice: 95.00,
-    description: 'Colar com pingente de coração em prata 925',
-    stock: 3,
-    reservedStock: 1,
-  },
-  {
-    id: 'prod-4',
-    name: 'Pulseira Veneziana',
-    categoryId: 'cat-4',
-    sku: 'PU001',
-    silverWeight: 8.0,
-    silverType: '925',
-    salePrice: 250.00,
-    costPrice: 130.00,
-    description: 'Pulseira veneziana em prata 925',
-    stock: 4,
-    reservedStock: 0,
-  },
-];
+// Não há mock de produtos por usuário: cada login apresenta inventário próprio via API
+const mockProducts: Product[] = []
 
 const mockClients: Client[] = [
   {
@@ -165,7 +113,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [users] = useState<User[]>([mockUser]);
   const [categories, setCategories] = useState<Category[]>(mockCategories);
-  const [products, setProducts] = useState<Product[]>(mockProducts);
+  const [products, setProducts] = useState<Product[]>([]);
   const [clients, setClients] = useState<Client[]>(mockClients);
   const [sales, setSales] = useState<Sale[]>([]);
   const [cashRegisters, setCashRegisters] = useState<CashRegister[]>([]);
@@ -181,6 +129,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   // Load data from API on mount
   useEffect(() => {
     const loadData = async () => {
+      if (!currentUser) return
+
       try {
         // Load products from API
         const productsData = await getProducts();
@@ -208,7 +158,24 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         if (saved) {
           try {
             const data = JSON.parse(saved);
-            if (data.products) setProducts(data.products);
+            if (data.products) {
+              // Normalize products from localStorage
+              const normalizedFromStorage = data.products.map((prod: any) => ({
+                id: prod.id?.toString() ?? generateId(),
+                name: prod.name ?? 'Unnamed Product',
+                categoryId: prod.categoryId ?? prod.category_id ?? categories[0]?.id ?? 'cat-1',
+                sku: prod.sku ?? '',
+                silverWeight: Number(prod.silverWeight ?? prod.silver_weight ?? 0),
+                silverType: prod.silverType ?? prod.silver_type ?? '925',
+                salePrice: Number(prod.salePrice ?? prod.sale_price ?? prod.price ?? 0),
+                costPrice: Number(prod.costPrice ?? prod.cost_price ?? prod.price ?? 0),
+                description: prod.description ?? '',
+                stock: Number(prod.stock ?? 0),
+                reservedStock: Number(prod.reservedStock ?? prod.reserved_stock ?? 0),
+                photo: prod.photo ?? undefined,
+              }));
+              setProducts(normalizedFromStorage);
+            }
           } catch (e) {
             console.error('Error loading data:', e);
           }
@@ -217,7 +184,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     };
 
     loadData();
-  }, [categories]);
+  }, [categories, currentUser]);
 
   // Save to localStorage whenever data changes
   useEffect(() => {
@@ -247,7 +214,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   };
 
   const [sessionStart, setSessionStart] = useState<number | null>(null);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const resetTimer = () => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
@@ -274,21 +241,76 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     } else {
       // No valid auth data, ensure clean state
       setCurrentUser(null);
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
-      localStorage.removeItem("joalheria-data");
     }
   }, []);
 
-  // Session expiration check
+  useEffect(() => {
+    if (!currentUser) {
+      setProducts([])
+      return
+    }
+  }, [currentUser])
+
+
+  // 🚨 DESATIVADO TEMPORARIAMENTE (BUG LOGIN)
+  // Validate token with backend periodically
+  //
+  //useEffect(() => {
+  //  if (!currentUser) return;
+  //  
+  //  const validateTokenPeriodically = async () => {
+  //    const token = localStorage.getItem("token")
+  //    if (!token) {
+  //      console.warn('[TOKEN] No token found - forcing logout')
+  //      logout()
+  //      return
+  //    }
+  //    
+  //    try {
+  //      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000'
+  //      const user = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user') || 'null') : null
+  //      const response = await fetch(`${apiUrl}/auth/validate`, {
+  //        method: 'GET',
+  //        headers: {
+  //          'Authorization': `Bearer ${token}`,
+  //          'Content-Type': 'application/json',
+  //          'X-User-Id': user?.id ? String(user.id) : ''
+  //        },
+  //        credentials: 'omit'
+  //      })
+  //      
+  //      if (!response.ok) {
+  //        console.warn('[TOKEN] Backend validation failed:', response.status)
+  //        logout()
+  //      }
+  //   } catch (error) {
+  //      console.error('[TOKEN] Validation error:', error)
+        // Network error but user exists = don't logout, could be temp issue
+        // But on next network success, if token invalid, will logout
+  //    }
+  //  };
+  //  
+    // Validate every 5 minutes
+  //  const interval = setInterval(validateTokenPeriodically, 5 * 60 * 1000)
+  //  return () => clearInterval(interval)
+  //}, [currentUser]);
+
+
+
+
+
+
+
+  // Session expiration check (1 hour timeout)
   useEffect(() => {
     if (!sessionStart) return;
     const checkSession = () => {
-      if (Date.now() - sessionStart > 60 * 60 * 1000) { // 1 hour
-        logout();
+      if (Date.now() - sessionStart > 60 * 60 * 1000) {
+        console.warn('[SESSION] Session expired after 1 hour')
+        logout()
       }
     };
-    const interval = setInterval(checkSession, 60000); // check every minute
+    const interval = setInterval(checkSession, 60000);
     return () => clearInterval(interval);
   }, [sessionStart]);
 
@@ -317,7 +339,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     products,
     addProduct: async (product) => {
       try {
-        const newProduct = await createProduct(product);
+        const newProduct = await createProduct({
+          name: product.name,
+          price: product.salePrice, //CONVERTE
+          stock: product.stock,
+        });
         setProducts([...products, newProduct]);
       } catch (error) {
         console.error('Error creating product:', error);
@@ -329,11 +355,30 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     updateProduct: async (id, updates) => {
       try {
         const updatedProduct = await updateProduct(id, updates);
-        setProducts(products.map((p) => (p.id === id ? updatedProduct : p)));
+        // Normalize API response to ensure complete object
+        const normalizedUpdated = {
+          ...products.find(p => p.id === id),
+          ...updatedProduct,
+          id: updatedProduct.id?.toString() ?? id,
+          stock: Number(updatedProduct.stock ?? updatedProduct.price ?? 0),
+          salePrice: Number(updatedProduct.salePrice ?? updatedProduct.sale_price ?? updatedProduct.price ?? 0),
+          costPrice: Number(updatedProduct.costPrice ?? updatedProduct.cost_price ?? updatedProduct.price ?? 0),
+          silverWeight: Number(updatedProduct.silverWeight ?? updatedProduct.silver_weight ?? 0),
+          reservedStock: Number(updatedProduct.reservedStock ?? updatedProduct.reserved_stock ?? 0),
+        };
+        setProducts(products.map((p) => (p.id === id ? normalizedUpdated : p)));
       } catch (error) {
         console.error('Error updating product:', error);
-        // Fallback to local update
-        setProducts(products.map((p) => (p.id === id ? { ...p, ...updates } : p)));
+        // Fallback to local update with proper normalization
+        const normalized = {
+          ...updates,
+          stock: Number(updates.stock ?? 0),
+          salePrice: Number(updates.salePrice ?? 0),
+          costPrice: Number(updates.costPrice ?? 0),
+          silverWeight: Number(updates.silverWeight ?? 0),
+          reservedStock: Number(updates.reservedStock ?? 0),
+        };
+        setProducts(products.map((p) => (p.id === id ? { ...p, ...normalized } : p)));
       }
     },
     deleteProduct: async (id) => {
@@ -376,8 +421,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           category: 'venda',
           amount: newSale.total,
           description: `Venda #${newSale.id} - ${newSale.items.length} item(ns)`,
-          userId: currentUser.id,
-          userName: currentUser.name,
+          userId: currentUser?.id || '',
+          userName: currentUser?.name || '',
         };
         setCashEntries((prev) => [...prev, { ...cashEntry, id: generateId() }]);
       }
