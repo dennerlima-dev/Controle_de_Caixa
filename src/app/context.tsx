@@ -1,4 +1,4 @@
-import { getProducts } from '../api/products';
+import { getProducts, updateProduct as updateProductAPI } from '../api/products';
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import type {
   User,
@@ -235,7 +235,23 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     
     products,
     addProduct: (product) => setProducts([...products, { ...product, id: generateId() }]),
-    updateProduct: (id, updates) => setProducts(products.map((p) => (p.id === id ? { ...p, ...updates } : p))),
+
+    updateProduct: async (id, updates) => {
+      const product = products.find((p) => p.id === id);
+      if (!product) return;
+      
+      const updated = {
+        ...product,
+        ...updates,
+      };
+      
+      await updateProductAPI(id, updated);
+      
+      setProducts((prev) =>
+        prev.map((p) => (p.id === id ? updated : p))
+    );
+  },
+
     deleteProduct: (id) => setProducts(products.filter((p) => p.id !== id)),
     
     clients,

@@ -39,6 +39,19 @@ app.post("/products", async (req, res) => {
     res.json(result.rows[0])
 })
 
+// UPDATE PRODUTOS
+app.put("/products/:id", async (req, res) => {
+    const { id } = req.params
+    const { name, price, stock } = req.body
+
+    const result = await pool.query(
+        "UPDATE products SET name=$1, price=$2, stock=$3 WHERE id=$4 RETURNING *",
+        [name, price, stock, id]
+    )
+
+    res.json(result.rows[0])
+})
+
 
 app.listen(3000, () => {
 console.log("Servidor rodando")

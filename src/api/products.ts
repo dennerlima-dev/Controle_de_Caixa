@@ -22,3 +22,19 @@ export async function createProduct(product: any) {
 
   return response.json();
 }
+
+export async function updateProduct(id: string, product: any) {
+  const response = await fetch(`${API_URL}/products/${id}`, {
+    method: "PUT", // se der erro, depois testamos PATCH
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      name: product.name,
+      price: product.salePrice,
+      stock: product.stock,
+    }),
+  });
+
+  return response.json();
+}
