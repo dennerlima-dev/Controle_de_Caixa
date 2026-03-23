@@ -1,3 +1,4 @@
+import { Header } from "../components/Header";
 import { useState } from "react";
 import { useNavigate } from "react-router";
 
@@ -18,7 +19,10 @@ export function Login() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+    <div className="min-h-screen bg-gray-100">
+      <Header showUser={false} />
+
+      <div className="flex items-center justify-center h-[calc(100vh-64px)]">
       <form
         onSubmit={handleLogin}
         className="bg-white p-8 rounded-xl shadow-md w-80"
@@ -50,6 +54,7 @@ export function Login() {
           Entrar
         </button>
       </form>
+      </div>
     </div>
   );
 }
