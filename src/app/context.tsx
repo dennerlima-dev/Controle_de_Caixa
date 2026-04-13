@@ -1,4 +1,8 @@
-import { getProducts, updateProduct as updateProductAPI } from '../api/products';
+import {
+  getProducts,
+  createProduct,
+  updateProduct as updateProductAPI
+} from '../api/products';
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import type {
   User,
@@ -27,7 +31,7 @@ interface AppContextType {
   
   // Products
   products: Product[];
-  addProduct: (product: Omit<Product, 'id'>) => void;
+  addProduct: (product: Omit<Product, 'id'>) => Promise<void>;
   updateProduct: (id: string, product: Partial<Product>) => void;
   deleteProduct: (id: string) => void;
   
@@ -167,30 +171,33 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [categories, setCategories] = useState<Category[]>(mockCategories);
   const [products, setProducts] = useState<Product[]>([]);
 
-    useEffect(() => {
-  async function loadProducts() {
-    const data = await getProducts();
+  useEffect(() => {
+    async function loadProducts() {
+      try {
+        const data = await getProducts();
 
-    // adaptar dados do backend para seu formato
-    const formatted = data.map((p: any) => ({
-      id: String(p.id),
-      name: p.name,
-      categoryId: '', // temporário
-      sku: '',
-      silverWeight: 0,
-      silverType: '925',
-      salePrice: Number(p.price) || 0,
-      costPrice: Number(p.price) || 0,
-      description: '',
-      stock: Number(p.stock) || 0,
-      reservedStock: 0,
-    }));
+        const formatted = data.map((p: any) => ({
+          id: String(p.id),
+          name: p.name,
+          categoryId: '',
+          sku: '',
+          silverWeight: 0,
+          silverType: '925',
+          salePrice: Number(p.price) || 0,
+          costPrice: Number(p.price) || 0,
+          description: '',
+          stock: Number(p.stock) || 0,
+          reservedStock: 0,
+        }));
 
-    setProducts(formatted);
-  }
+        setProducts(formatted);
+      } catch (error) {
+        console.error("Erro ao carregar produtos:", error);
+      }
+    }
 
-  loadProducts();
-}, []);
+    loadProducts();
+  }, []);
 
   const [clients, setClients] = useState<Client[]>(mockClients);
   const [sales, setSales] = useState<Sale[]>([]);
@@ -234,7 +241,20 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     deleteCategory: (id) => setCategories(categories.filter((c) => c.id !== id)),
     
     products,
-    addProduct: (product) => setProducts([...products, { ...product, id: generateId() }]),
+    addProduct: async (product) => {
+      try {
+        const savedProduct = await createProduct(product);
+        
+        const newProduct = {
+          ...product,
+          id: String(savedProduct.id),
+        };
+        
+        setProducts((prev) => [...prev, newProduct]);
+      } catch (error) {
+        console.error("Erro ao cadastrar produto:", error);
+      }
+    },
 
     updateProduct: async (id, updates) => {
       const product = products.find((p) => p.id === id);
