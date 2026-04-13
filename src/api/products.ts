@@ -17,6 +17,7 @@ export async function createProduct(product: any) {
       name: product.name,
       price: product.salePrice,
       stock: product.stock,
+      category_id: product.categoryId,
     }),
   });
 
@@ -33,6 +34,7 @@ export async function updateProduct(id: string, product: any) {
       name: product.name,
       price: product.salePrice,
       stock: product.stock,
+      category_id: product.categoryId,
     }),
   });
 

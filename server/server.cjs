@@ -44,11 +44,11 @@ app.get("/categories", async (req, res) => {
 
 // POST PRODUTOS
 app.post("/products", async (req, res) => {
-    const { name, price, stock } = req.body
+    const { name, price, stock, category_id } = req.body
 
     const result = await pool.query(
-        "INSERT INTO products (name, price, stock) VALUES ($1, $2, $3) RETURNING *",
-        [name, price, stock]
+        "INSERT INTO products (name, price, stock, category_id) VALUES ($1, $2, $3, $4) RETURNING *",
+        [name, price, stock, category_id]
     )
 
     res.json(result.rows[0])
@@ -88,14 +88,14 @@ app.delete("/categories/:id", async (req, res) => {
   res.json({ success: true });
 });
 
-// UPDATE PRODUTOS
+// PUT PRODUTOS
 app.put("/products/:id", async (req, res) => {
     const { id } = req.params
-    const { name, price, stock } = req.body
+    const { name, price, stock, category_id } = req.body
 
     const result = await pool.query(
-        "UPDATE products SET name=$1, price=$2, stock=$3 WHERE id=$4 RETURNING *",
-        [name, price, stock, id]
+        "UPDATE products SET name=$1, price=$2, stock=$3, category_id=$4 WHERE id=$5 RETURNING *",
+        [name, price, stock, category_id, id]
     )
 
     res.json(result.rows[0])
