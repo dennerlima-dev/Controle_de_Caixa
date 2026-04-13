@@ -3,6 +3,12 @@ import {
   createProduct,
   updateProduct as updateProductAPI
 } from '../api/products';
+import {
+  getCategories,
+  createCategory,
+  updateCategoryAPI,
+  deleteCategoryAPI
+} from '../api/categories';
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import type {
   User,
@@ -168,8 +174,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const [currentUser] = useState<User>(mockUser);
   const [users] = useState<User[]>([mockUser]);
-  const [categories, setCategories] = useState<Category[]>(mockCategories);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
+
 
   useEffect(() => {
     async function loadProducts() {
@@ -197,6 +204,26 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
 
     loadProducts();
+  }, []);
+
+  useEffect(() => {
+    async function loadCategories() {
+      try {
+        const data = await getCategories();
+
+        const formatted = data.map((c: any) => ({
+          id: String(c.id),
+          name: c.name,
+          description: c.description || '',
+        }));
+
+        setCategories(formatted);
+      } catch (error) {
+        console.error("Erro ao carregar categorias:", error);
+      }
+    }
+    
+    loadCategories();
   }, []);
 
   const [clients, setClients] = useState<Client[]>(mockClients);
@@ -236,7 +263,21 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     users,
     
     categories,
-    addCategory: (category) => setCategories([...categories, { ...category, id: generateId() }]),
+    addCategory: async (category) => {
+      try {
+        const savedCategory = await createCategory(category);
+
+        setCategories((prev) => [
+          ...prev,
+          {
+            ...category,
+            id: String(savedCategory.id),
+          },
+        ]);
+      } catch (error) {
+        console.error("Erro ao cadastrar categoria:", error);
+      }
+    },
     updateCategory: (id, updates) => setCategories(categories.map((c) => (c.id === id ? { ...c, ...updates } : c))),
     deleteCategory: (id) => setCategories(categories.filter((c) => c.id !== id)),
     
