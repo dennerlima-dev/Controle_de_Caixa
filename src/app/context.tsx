@@ -186,7 +186,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         const formatted = data.map((p: any) => ({
           id: String(p.id),
           name: p.name,
-          categoryId: '',
+          categoryId: String(p.category_id || ''),
           sku: '',
           silverWeight: 0,
           silverType: '925',
@@ -278,8 +278,32 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         console.error("Erro ao cadastrar categoria:", error);
       }
     },
-    updateCategory: (id, updates) => setCategories(categories.map((c) => (c.id === id ? { ...c, ...updates } : c))),
-    deleteCategory: (id) => setCategories(categories.filter((c) => c.id !== id)),
+
+    updateCategory: async (id, updates) => {
+      try {
+        await updateCategoryAPI(id, updates);
+
+        setCategories((prev) =>
+          prev.map((c) =>
+            c.id === id ? { ...c, ...updates } : c
+        )
+      );
+    } catch (error) {
+      console.error("Erro ao atualizar categoria:", error);
+    }
+  },
+    
+    deleteCategory: async (id) => {
+      try {
+        await deleteCategoryAPI(id);
+
+        setCategories((prev) =>
+          prev.filter((c) => c.id !== id)
+        );
+      } catch (error) {
+        console.error("Erro ao excluir categoria:", error);
+      }
+    },
     
     products,
     addProduct: async (product) => {
